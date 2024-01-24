@@ -22,10 +22,6 @@ st.set_page_config(page_title="Store Report Dashboard",
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
 css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/superstore.css'
-css_code = f'<link rel="stylesheet" href="{css_url}">'
-st.markdown(css_code, unsafe_allow_html=True)
-
-css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/superstore.css'
 css_response = requests.get(css_url)
 
 # Check if the request was successful (status code 200)
