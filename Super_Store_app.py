@@ -551,7 +551,7 @@ st.markdown(
     """
     <style>
         .st-emotion-cache-12w0qpk {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("https://cdn.behindthemarkets.com/2023/10/shutterstock-1681420990.jpg");
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("https://github.com/mschemick/OfficeOddessy/blob/main/metric_image.jpg?raw=true");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
