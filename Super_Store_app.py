@@ -20,6 +20,11 @@ st.set_page_config(page_title="Store Report Dashboard",
 ## Title of dashboard
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
+with open('superstore.css') as f:
+    css = f.read()
+
+st.markdown(f'<style>{css}</style', unsafe_allow_html=True)
+
 ## Page Layout
 col1, col2, col3, col4, = st.columns ((4))
 col5, col6 = st.columns ((2))
@@ -542,53 +547,3 @@ if not filtered_data.empty:
         Profit_margin = round((filtered_data['Profit'].sum() / filtered_data['Sales'].sum()) * 100, 2)
         formatted_Profit_margin = '{:,}%'.format(int(Profit_margin))
         col4.metric("Profit Margin", formatted_Profit_margin)
-
-##########################
-## CSS Styles
-##########################
-
-st.markdown(
-    """
-    <style>
-        .st-emotion-cache-12w0qpk {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("https://github.com/mschemick/OfficeOddessy/blob/main/metric_image.jpg?raw=true");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        </style>
-""",
-unsafe_allow_html=True,
-)
-
-st.markdown(
-   """
-  <style>
-    .st-emotion-cache-q49buc.e1i5pmia2 p {
-        display: inline-block;
-        text-align: center;
-        color: white;
-        font-size: 20px;
-        opacity: 1;
-        }
-        </style>
-    """,
-    unsafe_allow_html=True,
-    )
-
-
-st.markdown(
-        """
-        <style>
-        .st-emotion-cache-1wivap2 {
-            text-align: center;
-            color: white;
-            font-size: 24px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    
-
-
