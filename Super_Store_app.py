@@ -21,10 +21,6 @@ st.set_page_config(page_title="Store Report Dashboard",
 ## Title of dashboard
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
-with open('C:\\Users\\msche\\OneDrive\\Desktop\\Data_Projects\\myevn\\Lib\\site-packages\\streamlit\\static\\superstore.css', encoding='ISO-8859-1') as f:
-    css = f.read()
-
-st.markdown(f'<style>{css}</style', unsafe_allow_html=True)
 
 
 ## Page Layout
