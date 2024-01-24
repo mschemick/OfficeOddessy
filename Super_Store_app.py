@@ -21,15 +21,11 @@ st.set_page_config(page_title="Store Report Dashboard",
 ## Title of dashboard
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
-css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/superstore.css'
-css_response = requests.get(css_url)
+with open('C:\\Users\\msche\\OneDrive\\Desktop\\Data_Projects\\myevn\\Lib\\site-packages\\streamlit\\static\\superstore.css', encoding='ISO-8859-1') as f:
+    css = f.read()
 
-# Check if the request was successful (status code 200)
-if css_response.status_code == 200:
-    css_code = f'<style>{css_response.text}</style>'
-    st.markdown(css_code, unsafe_allow_html=True)
-else:
-    st.warning(f"Failed to load CSS from {css_url}")
+st.markdown(f'<style>{css}</style', unsafe_allow_html=True)
+
 
 ## Page Layout
 col1, col2, col3, col4, = st.columns ((4))
