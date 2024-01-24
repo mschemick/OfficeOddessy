@@ -20,10 +20,10 @@ st.set_page_config(page_title="Store Report Dashboard",
 ## Title of dashboard
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
-with open('superstore.css') as f:
-    css = f.read()
+css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/superstore.css'
+css_code = f'<link rel="stylesheet" href="{css_url}">'
+st.markdown(css_code, unsafe_allow_html=True)
 
-st.markdown(f'<style>{css}</style', unsafe_allow_html=True)
 
 ## Page Layout
 col1, col2, col3, col4, = st.columns ((4))
