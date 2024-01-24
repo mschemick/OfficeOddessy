@@ -4,6 +4,7 @@ import plotly.express as px
 import streamlit as st
 import datetime
 import os
+import requests
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -24,6 +25,15 @@ css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/supers
 css_code = f'<link rel="stylesheet" href="{css_url}">'
 st.markdown(css_code, unsafe_allow_html=True)
 
+css_url = 'https://raw.githubusercontent.com/mschemick/OfficeOddessy/main/superstore.css'
+css_response = requests.get(css_url)
+
+# Check if the request was successful (status code 200)
+if css_response.status_code == 200:
+    css_code = f'<style>{css_response.text}</style>'
+    st.markdown(css_code, unsafe_allow_html=True)
+else:
+    st.warning(f"Failed to load CSS from {css_url}")
 
 ## Page Layout
 col1, col2, col3, col4, = st.columns ((4))
