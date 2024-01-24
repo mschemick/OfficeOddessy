@@ -38,7 +38,7 @@ df = pd.read_csv("Super_Store.csv", encoding=('ISO-8859-1'), low_memory=False)
 ###################################
 ## Company logo
 
-st.sidebar.image("office_oasis4.jpg", width=120)
+st.sidebar.image("Office_oasis4.jpg", width=120)
 
 
 ## Sidebar Title
