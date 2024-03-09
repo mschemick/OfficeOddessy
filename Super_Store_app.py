@@ -2,12 +2,14 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
 import datetime
 import os
 import requests
 import warnings
 warnings.filterwarnings('ignore')
 
+print(st.__path__)
 ############################
 ## Web App Setup
 ############################
@@ -21,6 +23,10 @@ st.set_page_config(page_title="Store Report Dashboard",
 ## Title of dashboard
 st.title(" :bar_chart: Office Odyssey KPI Dashboard")
 
+with open('C:\\Users\\msche\\OneDrive\\Desktop\\Data_Projects\\myevn\\Lib\\site-packages\\streamlit\\static\\static\\css\\superstore.css', encoding='ISO-8859-1') as f:
+    css = f.read()
+
+st.markdown(f'<style>{css}</style', unsafe_allow_html=True)
 
 
 ## Page Layout
@@ -31,7 +37,7 @@ col12, _ = st.columns((42,1))
 col8, col10 = st.columns((2))
 col11, col13 = st.columns((2))
 
-
+x = 3
 ## Loading in the Dataset
 
 df = pd.read_csv("Super_Store.csv", encoding=('ISO-8859-1'), low_memory=False)
@@ -41,11 +47,11 @@ df = pd.read_csv("Super_Store.csv", encoding=('ISO-8859-1'), low_memory=False)
 ###################################
 ## Company logo
 
-st.sidebar.image("https://github.com/mschemick/OfficeOddessy/blob/main/Office_oasis4.jpg?raw=true", width=120)
+st.sidebar.image("office_oasis4.jpg", width=120)
 
 
 ## Sidebar Title
-st.sidebar.title('Choose KPI')
+st.sidebar.title('KPI')
 
 Select_option = st.sidebar.radio('select option', ('Sales', 'Profit'), key="radio_buttons", format_func=lambda x: x)
 
@@ -237,15 +243,19 @@ fig_region.update_layout(
 
 selected_city2 = filtered_data[filtered_data['City'] == Selected_city]
 
-if not selected_city2.empty:
-    selected_Per_city = selected_city2['Sales'].values[0] / filtered_data['Sales'].sum() * 100
-    other_per = 100 - selected_Per_city
-    fig_pie_sales = px.pie(values=[selected_Per_city, other_per], names=[Selected_city, 'Other Cities'],
-                           title=f'Sales Distribution for {Selected_city} vs Other Cities in State')
-else:
-    # Handle the case when selected_city2 is empty
-    fig_pie_sales = px.pie(values=[0, 100], names=['No Sales Data', 'Other Cities'],
-                           title=f'No Sales Data for {Selected_city}')
+DOW_Percent = filtered_data['Days_of_week'].value_counts()
+
+fig_city_pie= px.pie(
+    names=DOW_Percent.index,
+    values=DOW_Percent.values,
+    title=f'Percentage of Orders placed by Day for {Selected_city}',
+    labels={'value': 'Count'},
+    width=500, height=500
+)
+
+fig_city_pie.update_layout(
+    title=dict(font=dict(size=24)))
+
 
 ## Creating dataframes for profit
 
@@ -284,16 +294,6 @@ fig_region2 = px.bar(filtered_data, y=x_region, x=bar_data, labels={'y': 'region
 fig_region2.update_layout(
     title=dict(font=dict(size=24)))
 
-if not selected_city2.empty:
-    selected_Per_city = selected_city2['Profit'].values[0] / filtered_data['Profit'].sum() * 100
-    other_per = 100 - selected_Per_city
-    fig_pie_profit = px.pie(values=[selected_Per_city, other_per], names=[Selected_city, 'Other Cities'],
-                           title=f'Profit Distribution for {Selected_city} vs Other Cities in State')
-else:
-    # Handle the case when selected_city2 is empty
-    fig_pie_profit = px.pie(values=[0, 100], names=['No Profit Data', 'Other Cities'],
-                           title=f'No Profit Data for {Selected_city}')
-
 ## Insert Charts based on condition of filtered data
 
 with col8:
@@ -301,14 +301,14 @@ with col8:
         if Selected_region != all_option:
             if Selected_state != all_option:
                 if Selected_city != all_option:
-                    st.plotly_chart(fig_pie_sales)
+                    st.plotly_chart(fig_city_pie)
                 else:    
                     st.plotly_chart(fig_city)
             else:
                 st.plotly_chart(fig_state)    
         elif Selected_state != all_option:
                 if Selected_city != all_option:
-                    st.plotly_chart(fig_pie_sales)
+                    st.plotly_chart(fig_city_pie)
                 else:
                      st.plotly_chart(fig_city)
         else:
@@ -317,14 +317,14 @@ with col8:
         if Selected_region != all_option:
             if Selected_state != all_option:
                 if Selected_city != all_option:
-                    st.plotly_chart(fig_pie_profit)
+                    st.plotly_chart(fig_city_pie)
                 else:    
                     st.plotly_chart(fig_city2)
             else:
                 st.plotly_chart(fig_state2)    
         elif Selected_state != all_option:
                 if Selected_city != all_option:
-                    st.plotly_chart(fig_pie_profit)
+                    st.plotly_chart(fig_city_pie)
                 else:
                      st.plotly_chart(fig_city2)
         else:
@@ -338,52 +338,79 @@ with col10:
         if Selected_region != all_option:
             if Selected_state != all_option:    
                 if Selected_city != all_option:
-                    st.markdown(f'### Day of Week for {Selected_city} Ranked by Sales')
-                    st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                    st.markdown(f'### Days of the Week for {Selected_city} Ranked by Sales')
+                    table_1 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                    table_1_format = table_1.style.format({'Sales': "${:,.2f}"})
+                    st.table(table_1_format)
                 else:
                     st.markdown(f"### Top 10 Cities in {Selected_state} by Sales")
-                    st.table(filtered_data[filtered_data['State'] == Selected_state][['City', 'Sales']].groupby('City').sum().nlargest(10, 'Sales'))                
+                    table_2 =(filtered_data[filtered_data['State'] == Selected_state][['City', 'Sales']].groupby('City').sum().nlargest(10, 'Sales'))                
+                    table_2_format = table_2.style.format({'Sales': "${:,.2f}"})
+                    st.table(table_2_format)
             else:
                 st.markdown(f"### Top 10 States in {Selected_region} by Sales")
-                st.table(filtered_data[['Sales', 'State']].groupby('State').sum().nlargest(10, 'Sales'))     
+                table_3 = (filtered_data[['Sales', 'State']].groupby('State').sum().nlargest(10, 'Sales'))     
+                table_3_format = table_3.style.format({'Sales': "${:,.2f}"})
+                st.table(table_3_format)
         elif Selected_state != all_option:
             if Selected_city != all_option:
-                st.markdown(f'### Day of Week for {Selected_city} Ranked by Sales')
-                st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                st.markdown(f'### Days of the Week for {Selected_city} Ranked by Sales')
+                table_4 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                table_4_format = table_4.style.format({'Sales': "${:,.2f}"})
+                st.table(table_4_format)
             else:
                 st.markdown(f"### Top 10 Cities in {Selected_state} Ranked by Sales")
-                st.table(filtered_data[filtered_data['State'] == Selected_state][['City', 'Sales']].groupby('City').sum().nlargest(10, 'Sales'))                
+                table_5 = (filtered_data[filtered_data['State'] == Selected_state][['City', 'Sales']].groupby('City').sum().nlargest(10, 'Sales'))                
+                table_5_format = table_5.style.format({'Sales': "${:,.2f}"})
+                st.table(table_5_format)
         elif Selected_city != all_option:
-            st.markdown(f'### Day of Week for {Selected_city} Ranked by sales')
-            st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+            st.markdown(f'### Days of the Week for {Selected_city} Ranked by sales')
+            table_6 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+            table_6_format = table_6.style.format({'Sales': "${:,.2f}"})
+            st.table(table_6_format)
         else:
             st.markdown("### Regions ranked by Sales")
-            st.table(filtered_data[['Region', 'Sales']].groupby('Region').sum().nlargest(10, 'Sales'))
+            table_7 = (filtered_data[['Region', 'Sales']].groupby('Region').sum().nlargest(10, 'Sales'))
+            table_7_format = table_7.style.format({'Sales': "${:,.2f}"})
+            st.table(table_7_format)
     if Select_option == 'Profit':    
         if Selected_region != all_option:
             if Selected_state != all_option:    
                 if Selected_city != all_option:
-                    st.markdown(f'### Day of Week for {Selected_city} Ranked by Profit')
-                    st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))                 
+                    st.markdown(f'### Days of the Week for {Selected_city} Ranked by Profit')
+                    table_8 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))                 
+                    table_8_format = table_8.style.format({'Profit': "${:,.2f}"})
+                    st.table(table_8_format)
                 else:
                     st.markdown(f"### Top 10 Cities in {Selected_state} Ranked by Profit")
-                    st.table(filtered_data[filtered_data['State'] == Selected_state][['City', 'Profit']].groupby('City').sum().nlargest(10, 'Profit'))                
+                    table_9 = (filtered_data[filtered_data['State'] == Selected_state][['City', 'Profit']].groupby('City').sum().nlargest(10, 'Profit'))                
+                    table_9_format = table_9.style.format({'Profit': "${:,.2f}"})
+                    st.table(table_9_format)
             else:
                 st.markdown(f"### Top 10 States in {Selected_region} Ranked by Profit")
-                st.table(filtered_data[['Profit', 'State']].groupby('State').sum().nlargest(10, 'Profit'))     
+                table_10 = (filtered_data[['Profit', 'State']].groupby('State').sum().nlargest(10, 'Profit'))     
+                table_10_format = table_10.style.format({'Profit': "${:,.2f}"})
+                st.table(table_10_format)
         elif Selected_state != all_option:
             if Selected_city != all_option:
-                st.markdown(f'### Day of Week for {Selected_city} Ranked by Profit')
-                st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                st.markdown(f'### Days of the Week for {Selected_city} Ranked by Profit')
+                table_11 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                table_11_format = table_11.style.format({'Profit': "${:,.2f}"})
+                st.table(table_11_format)
             else:
                 st.markdown(f"### Top 10 Cities in {Selected_state} Ranked by Proft")
-                st.table(filtered_data[filtered_data['State'] == Selected_state][['City', 'Profit']].groupby('City').sum().nlargest(10, 'Profit'))                
+                table_12 = (filtered_data[filtered_data['State'] == Selected_state][['City', 'Profit']].groupby('City').sum().nlargest(10, 'Profit'))                
+                table_12_format = table_12.style.format({'Profit': "${:,.2f}"})
         elif Selected_city != all_option:
-            st.markdown(f'### Day of Week for {Selected_city} Ranked by Profit')
-            st.table(filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+            st.markdown(f'### Days of the Week for {Selected_city} Ranked by Profit')
+            table_13 = (filtered_data[filtered_data['State'] == Selected_state][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+            table_13_format = table_13.style.format({'Profit': "${:,.2f}"})
+            st.table(table_13_format)
         else:
             st.markdown("### Regions Ranked by Profit")
-            st.table(filtered_data[['Region', 'Profit']].groupby('Region').sum().nlargest(10, 'Profit'))
+            table_14 = (filtered_data[['Region', 'Profit']].groupby('Region').sum().nlargest(10, 'Profit'))
+            table_14_format = table_14.style.format({'Profit': "${:,.2f}"})
+            st.table(table_14_format)
 
 ######################################
 ## Product graph and Table
@@ -412,12 +439,12 @@ fig_product.update_layout(
     title=dict(font=dict(size=24)))
 
 x_values = filtered_data['Ship_Mode'].unique()
-ship_mode_counts = filtered_data['Ship_Mode'].value_counts()
+ship_mode_counts = filtered_data['Days_of_week'].value_counts()
 
 fig_product3 = px.pie(
     names=ship_mode_counts.index,
     values=ship_mode_counts.values,
-    title=f'{Select_option} by Ship Mode for {Selected_Product}',
+    title=f'Percentage of Orders placed by Day for {Selected_Product}',
     labels={'value': 'Count'},
     width=500, height=500
 )
@@ -452,52 +479,80 @@ with col13:
         if Selected_Category != all_option:
             if Selected_Sub_Category != all_option:    
                 if Selected_Product != all_option:
-                    st.markdown(f'### Day of Week for {Selected_Product} Ranked by Sales')
-                    st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                    st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Sales')
+                    table_data1 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                    table_data1_format = table_data1.style.format({'Sales': "${:,.2f}"})
+                    st.table(table_data1_format)
                 else:
                     st.markdown(f"### Top-Performing Products in {Selected_Sub_Category} Segment Ranked by Sales")
-                    st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Sales']].groupby('Product_Name').sum().nlargest(10, 'Sales'))                
+                    table_data2 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Sales']].groupby('Product_Name').sum().nlargest(10, 'Sales'))                
+                    table_data2_format = table_data2.style.format({'Sales': "${:,.2f}"})
+                    st.table(table_data2_format)
             else:
                 st.markdown(f"### Top-performing sub-categories in {Selected_Category} Segment Ranked by Sales")
-                st.table(filtered_data[['Sales', 'Sub-Category']].groupby('Sub-Category').sum().nlargest(10, 'Sales'))     
+                table_data3 = (filtered_data[['Sales', 'Sub-Category']].groupby('Sub-Category').sum().nlargest(10, 'Sales'))
+                table_data3_format = table_data3.style.format({'Sales': "${:,.2f}"})
+                st.table(table_data3_format)
         elif Selected_Sub_Category != all_option:
             if Selected_Product != all_option:
-                st.markdown(f'### Day of Week for {Selected_Product} Ranked by Sales')
-                st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Sales')
+                table_data4 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+                table_data4_format = table_data4.style.format({'Sales': "${:,.2f}"})
+                st.table(table_data4_format)
             else:
                 st.markdown(f"### Top-Performing Products in {Selected_Sub_Category} Segment Ranked by Sales")
-                st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Sales']].groupby('Product_Name').sum().nlargest(10, 'Sales'))                
+                table_data5 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Sales']].groupby('Product_Name').sum().nlargest(10, 'Sales'))                
+                table_data5_format = table_data5.style.format({'Sales': "${:,.2f}"})
+                st.table(table_data5_format)
         elif Selected_Product != all_option:
-            st.markdown(f'### Day of Week for {Selected_Product} Ranked by Sales')
-            st.table(filtered_data[filtered_data['Product_Name'] == Selected_Product][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+            st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Sales')
+            table_data6 =(filtered_data[filtered_data['Product_Name'] == Selected_Product][['Days_of_week', 'Sales']].groupby('Days_of_week').sum().nlargest(10, 'Sales'))
+            table_data6_format = table_data6.style.format({'Sales': "${:,.2f}"})
+            st.table(table_data6_format)
         else:
             st.markdown("### Category ranked by Sales")
-            st.table(filtered_data[['Category', 'Sales']].groupby('Category').sum().nlargest(10, 'Sales'))
+            table_data7 = (filtered_data[['Category', 'Sales']].groupby('Category').sum().nlargest(10, 'Sales'))
+            table_data7_format = table_data7.style.format({'Sales': "${:,.2f}"})
+            st.table(table_data7_format)
     if Select_option == 'Profit':    
         if Selected_Category != all_option:
             if Selected_Sub_Category != all_option:    
                 if Selected_Product != all_option:
-                    st.markdown(f'### Day of Week for {Selected_Product} Ranked by Profit')
-                    st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                    st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Profit')
+                    table_data8 =(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                    table_data8_format = table_data8.style.format({'Profit': "${:,.2f}"})
+                    st.table(table_data8_format)
                 else:
                     st.markdown(f"### Top-Performing Products in {Selected_Sub_Category} Segment Ranked by Profit")
-                    st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Profit']].groupby('Product_Name').sum().nlargest(10, 'Profit'))                
+                    table_data9 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Profit']].groupby('Product_Name').sum().nlargest(10, 'Profit'))                
+                    table_data9_format = table_data9.style.format({'Profit': "${:,.2f}"})
+                    st.table(table_data9_format)
             else:
                 st.markdown(f"### Top-performing sub-categories in {Selected_Category} Segment Ranked by Profit")
-                st.table(filtered_data[['Profit', 'Sub-Category']].groupby('Sub-Category').sum().nlargest(10, 'Profit'))     
+                table_data10 =(filtered_data[['Profit', 'Sub-Category']].groupby('Sub-Category').sum().nlargest(10, 'Profit'))     
+                table_data10_format = table_data10.style.format({'Profit': "${:,.2f}"})
+                st.table(table_data10_format)
         elif Selected_Sub_Category != all_option:
             if Selected_Product != all_option:
-                st.markdown(f'### Day of Week for {Selected_Product} Ranked by Profit')
-                st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Profit')
+                table_data11 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+                table_data11_format = table_data11.style.format({'Profit': "${:,.2f}"})
+                st.table(table_data11_format)
             else:
                 st.markdown(f"### Top-Performing Products in {Selected_Sub_Category} Segment Ranked by Profit")
-                st.table(filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Profit']].groupby('Product_Name').sum().nlargest(10, 'Profit'))                
+                table_data12 = (filtered_data[filtered_data['Sub-Category'] == Selected_Sub_Category][['Product_Name', 'Profit']].groupby('Product_Name').sum().nlargest(10, 'Profit'))                
+                table_data12_format = table_data12.style.format({'Profit': "${:,.2f}"})
+                st.table(table_data12_format)
         elif Selected_Product != all_option:
-            st.markdown(f'### Day of Week for {Selected_Product} Ranked by Profit')
-            st.table(filtered_data[filtered_data['Product_Name'] == Selected_Product][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+            st.markdown(f'### Days of the Week for {Selected_Product} Ranked by Profit')
+            table_data13 = (filtered_data[filtered_data['Product_Name'] == Selected_Product][['Days_of_week', 'Profit']].groupby('Days_of_week').sum().nlargest(10, 'Profit'))
+            table_data13_format = table_data13.style.format({'Profit': "${:,.2f}"})
+            st.table(table_data13_format)
         else:
             st.markdown("### Categories ranked by Profit")
-            st.table(filtered_data[['Category', 'Profit']].groupby('Category').sum().nlargest(10, 'Profit'))
+            table_data14 = (filtered_data[['Category', 'Profit']].groupby('Category').sum().nlargest(10, 'Profit'))
+            table_data14_format = table_data14.style.format({'Profit': "${:,.2f}"})
+            st.table(table_data14_format)
 
 ###########################
 ## Metric Information
@@ -545,3 +600,9 @@ if not filtered_data.empty:
         Profit_margin = round((filtered_data['Profit'].sum() / filtered_data['Sales'].sum()) * 100, 2)
         formatted_Profit_margin = '{:,}%'.format(int(Profit_margin))
         col4.metric("Profit Margin", formatted_Profit_margin)
+
+##########################
+## CSS Styles
+##########################
+
+
