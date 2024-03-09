@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import streamlit as st
-from streamlit_extras.stylable_container import stylable_container
 import datetime
 import os
 import requests
