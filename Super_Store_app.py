@@ -31,7 +31,7 @@ col12, _ = st.columns((42,1))
 col8, col10 = st.columns((2))
 col11, col13 = st.columns((2))
 
-x = 3
+
 ## Loading in the Dataset
 
 df = pd.read_csv("Super_Store.csv", encoding=('ISO-8859-1'), low_memory=False)
@@ -593,9 +593,5 @@ if not filtered_data.empty:
         Profit_margin = round((filtered_data['Profit'].sum() / filtered_data['Sales'].sum()) * 100, 2)
         formatted_Profit_margin = '{:,}%'.format(int(Profit_margin))
         col4.metric("Profit Margin", formatted_Profit_margin)
-
-##########################
-## CSS Styles
-##########################
 
 
